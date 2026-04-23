@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Querion — UI Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#F8FAFC; --surface:#fff; --primary:#2563EB; --slate:#475569;
+  --teal:#0D9488; --violet:#8B5CF6; --border:#E2E8F0; --border2:#CBD5E1;
+  --muted:#94A3B8; --text:#0F172A; --text2:#334155; --text3:#64748B;
+  --success:#059669; --danger:#DC2626; --warn:#D97706;
+  --r:8px; --r-lg:12px; --r-xl:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;color:var(--text);background:#E8EDF3;padding:40px 24px;display:flex;flex-direction:column;gap:48px;}
+
+/* PAGE SHELL */
+.page{width:1280px;background:var(--surface);border-radius:var(--r-xl);overflow:hidden;box-shadow:0 6px 32px rgba(0,0,0,.1);}
+.page-header{padding:28px 36px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:flex-start;gap:16px;}
+.screen-num{width:36px;height:36px;background:var(--primary);color:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.page-title{font-size:20px;font-weight:700;color:var(--text);}
+.page-sub{font-size:13px;color:var(--text3);margin-top:3px;}
+.page-body{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;border-top:1px solid var(--border);}
+
+/* SPEC COLUMNS */
+.col{padding:22px 24px;border-right:1px solid var(--border);}
+.col:last-child{border-right:none;}
+.col-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.col-icon{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* SECTION BLOCKS */
+.section{margin-bottom:16px;}
+.section-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+
+/* COMPONENT PILL */
+.comp{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.comp-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px;}
+.comp-dot.teal{background:var(--teal);}
+.comp-dot.violet{background:var(--violet);}
+.comp-dot.gray{background:var(--muted);}
+.comp-text{font-size:12px;color:var(--text2);line-height:1.5;}
+.comp-name{font-weight:600;color:var(--text);}
+
+/* STATE BADGES */
+.states{display:flex;flex-direction:column;gap:7px;}
+.state-row{display:flex;align-items:flex-start;gap:8px;}
+.state-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0;letter-spacing:.03em;white-space:nowrap;}
+.s-default{background:#EFF6FF;color:#1D4ED8;}
+.s-loading{background:#FFFBEB;color:#92400E;}
+.s-error{background:#FFF5F5;color:#991B1B;}
+.s-empty{background:#F8FAFC;color:#475569;border:1px solid var(--border);}
+.s-success{background:#F0FDF4;color:#14532D;}
+.state-desc{font-size:12px;color:var(--text3);line-height:1.5;}
+
+/* MICROCOPY ITEMS */
+.copy-item{background:var(--bg);border-radius:var(--r);padding:8px 10px;margin-bottom:7px;border-left:2px solid var(--primary);}
+.copy-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.copy-text{font-size:12px;color:var(--text);font-style:italic;line-height:1.5;}
+.copy-item.teal{border-left-color:var(--teal);}
+.copy-item.violet{border-left-color:var(--violet);}
+.copy-item.gray{border-left-color:var(--border2);}
+
+/* LAYOUT DIAGRAM */
+.layout-diagram{background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border);margin-bottom:12px;}
+.ld-row{display:flex;gap:5px;margin-bottom:5px;}
+.ld-row:last-child{margin-bottom:0;}
+.ld-block{border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.ld-topbar{background:#E0E7FF;color:#3730A3;height:22px;flex:1;}
+.ld-sidebar{background:#F1F5F9;color:#475569;width:52px;height:100px;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);}
+.ld-main{background:#fff;border:1px solid var(--border);color:var(--text3);flex:1;min-height:100px;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.ld-modal{background:#DBEAFE;color:#1D4ED8;height:60px;flex:1;}
+.ld-note{font-size:10px;color:var(--text3);margin-top:6px;font-style:italic;}
+
+/* PROP TABLE */
+.prop-table{width:100%;border-collapse:collapse;font-size:11px;}
+.prop-table th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:4px 8px;background:var(--bg);}
+.prop-table td{padding:5px 8px;border-top:1px solid var(--border);color:var(--text2);vertical-align:top;}
+.prop-table td:first-child{font-weight:500;color:var(--text);white-space:nowrap;}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px;color:var(--primary);}
+
+/* TAGS */
+.tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;}
+.tag-blue{background:#EFF6FF;color:#1D4ED8;}
+.tag-teal{background:#F0FDFA;color:#0F766E;}
+.tag-violet{background:#F5F3FF;color:#6D28D9;}
+.tag-gray{background:var(--bg);color:var(--slate);border:1px solid var(--border);}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:12px 0;}
+
+/* ANNOTATION */
+.annotation{font-size:11px;color:var(--text3);line-height:1.6;padding:8px 10px;background:var(--bg);border-radius:var(--r);margin-top:6px;}
+
+/* FLOW BADGE */
+.flow-badge{display:inline-flex;align-items:center;gap:5px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:20px;padding:3px 10px 3px 3px;font-size:11px;font-weight:600;color:var(--primary);margin-bottom:10px;}
+.flow-num{width:18px;height:18px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER CARD ─────────────────────────────────────────── -->
+<div style="width:1280px;background:var(--surface);border-radius:var(--r-xl);padding:32px 36px;box-shadow:0 6px 32px rgba(0,0,0,.1);">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+    <div style="width:40px;height:40px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#fff" stroke-width="1.8"/><path d="M7 10h6M10 7v6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <div style="font-size:22px;font-weight:700;color:var(--text);">Querion — UI Specification</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:2px;">8 screens · Layout · Components · States · Microcopy · Figma-ready</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <span class="tag tag-blue">v1.0</span>
+      <span class="tag tag-teal">Natural language → SQL</span>
+      <span class="tag tag-violet">Agentic AI</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;">
+    <div style="background:var(--bg);border-radius:var(--r-lg);padding:12px 14px;border:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Column 1</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Layout structure</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">Topbar · Sidebar · Main zones</div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--r-lg);padding:12px 14px;border:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Column 2</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Components</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">Inputs · Tables · Charts · Buttons</div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--r-lg);padding:12px 14px;border:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Column 3</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">States</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">Loading · Error · Empty · Success</div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--r-lg);padding:12px 14px;border:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Column 4</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Microcopy</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">Labels · Placeholders · Hints</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1 — DASHBOARD HOME
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">1</div>
+    <div>
+      <div class="page-title">Dashboard Home</div>
+      <div class="page-sub">Primary landing screen after login. Shows KPIs, revenue chart, recent queries, and the persistent ask bar. Entry point for all query creation.</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+      <span class="tag tag-blue">Always visible</span>
+      <span class="tag tag-teal">Core loop</span>
+    </div>
+  </div>
+  <div class="page-body">
+
+    <!-- COL 1: LAYOUT -->
+    <div class="col">
+      <div class="col-title">
+        <div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>
+        Layout structure
+      </div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar">top bar — 56px</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+            <div class="ld-block" style="background:#DBEAFE;color:#1E40AF;height:20px;font-size:9px;font-weight:600;">ask bar — full width</div>
+            <div class="ld-block" style="background:#F1F5F9;color:var(--text3);height:24px;font-size:9px;font-weight:600;">4-col metric cards</div>
+            <div class="ld-row" style="flex:1;">
+              <div class="ld-block ld-main" style="min-height:60px;font-size:9px;">revenue chart</div>
+              <div class="ld-block ld-main" style="min-height:60px;font-size:9px;max-width:130px;">recent queries</div>
+            </div>
+            <div class="ld-block" style="background:#F0FDFA;color:#0F766E;height:20px;font-size:9px;font-weight:600;">AI insight strip</div>
+          </div>
+        </div>
+        <div class="ld-note">Content area: 24px padding all sides. Gap between sections: 20px.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Zone specs</div>
+        <table class="prop-table">
+          <tr><th>Zone</th><th>Size / Behaviour</th></tr>
+          <tr><td>Topbar</td><td>56px fixed. Logo left, breadcrumb center, actions right.</td></tr>
+          <tr><td>Sidebar</td><td>220px fixed. Logo 60px, nav items, footer user row.</td></tr>
+          <tr><td>Ask bar</td><td>Full-width card. Sticky below topbar on scroll.</td></tr>
+          <tr><td>Metric grid</td><td>4-col equal width. 12px gap. 72px card height.</td></tr>
+          <tr><td>Chart panel</td><td>Fluid left, 380px fixed right (history panel).</td></tr>
+          <tr><td>Insight strip</td><td>Full-width. Teal-tinted. 48px min height.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- COL 2: COMPONENTS -->
+    <div class="col">
+      <div class="col-title">
+        <div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>
+        Components
+      </div>
+
+      <div class="section">
+        <div class="section-label">Ask bar</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Textarea</span> — auto-grow, 1–4 rows, 15px Inter. Blue focus ring 3px.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">DB chips</span> — pill toggles for source selection. Active = blue fill.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Run Query button</span> — primary filled, right-aligned, 36px height.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Metric cards (×4)</div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Label</span> — 11px uppercase muted. e.g. "TOTAL REVENUE"</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Value</span> — 24px bold. Tabular nums. e.g. "$2.4M"</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Delta badge</span> — 12px. Green arrow up / red arrow down + percent.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Revenue chart</div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Line (teal)</span> — actual data. 2.5px stroke, dot markers at peaks.</div></div>
+        <div class="comp"><div class="comp-dot violet"></div><div class="comp-text"><span class="comp-name">Line (violet dashed)</span> — AI forecast. Starts from last real data point.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Area fill</span> — teal 7% opacity under actual line.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Legend pills</span> — "Actual" + "AI Forecast" above chart right.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Recent queries panel</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Tabs</span> — Mine / Team / Saved. 1px bottom border active.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Query row</span> — title (13px 500), meta row: time ago + type badge.</div></div>
+      </div>
+    </div>
+
+    <!-- COL 3: STATES -->
+    <div class="col">
+      <div class="col-title">
+        <div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        States
+      </div>
+
+      <div class="section">
+        <div class="section-label">Ask bar</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Default</span><span class="state-desc">Blue border 1.5px. Placeholder text visible. Run button disabled (gray).</span></div>
+          <div class="state-row"><span class="state-badge s-default">Focused</span><span class="state-desc">Blue border + 3px ring rgba(37,99,235,.08). Button activates.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Submitting</span><span class="state-desc">Button shows spinner. Input locked. Border dims.</span></div>
+          <div class="state-row"><span class="state-badge s-error">Error</span><span class="state-desc">Red border 1.5px. Error message below.</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Metric cards</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">Shimmer skeleton on value and delta. 1.5s loop.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Loaded</span><span class="state-desc">Value animates count-up 600ms on first mount.</span></div>
+          <div class="state-row"><span class="state-badge s-error">No data</span><span class="state-desc">Value shows "—". Delta hidden. Muted label.</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Revenue chart</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">Full-width skeleton block 160px tall.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Loaded</span><span class="state-desc">Lines draw in left-to-right 800ms ease-out.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">No range data</span><span class="state-desc">Flat dashed line at zero. "No data for this period" label centered.</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Recent queries panel</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">3 skeleton rows with shimmer.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">Empty</span><span class="state-desc">Illustration + "No queries yet. Run your first one above."</span></div>
+          <div class="state-row"><span class="state-badge s-success">Loaded</span><span class="state-desc">Rows sorted newest first. Hover shows right-arrow.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COL 4: MICROCOPY -->
+    <div class="col">
+      <div class="col-title">
+        <div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        Microcopy
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Ask bar placeholder</div>
+        <div class="copy-text">"Ask a question about your data… e.g. What are my top 10 products by revenue this quarter?"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Ask bar label</div>
+        <div class="copy-text">"Ask your data anything"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Run button</div>
+        <div class="copy-text">"Run query →"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">DB chip</div>
+        <div class="copy-text">"sales_db" · "marketing_db" · "inventory_db"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Metric labels</div>
+        <div class="copy-text">"Total revenue" · "Active orders" · "Avg. order value" · "Customer churn"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">Delta context</div>
+        <div class="copy-text">"vs last month" · "improved 0.4%" · "down 2.1%"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">AI insight prefix</div>
+        <div class="copy-text">"AI suggests: Revenue is up 18.2% month-over-month, driven primarily by…"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Empty history</div>
+        <div class="copy-text">"No queries yet. Run your first one above to see results here."</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Date range button</div>
+        <div class="copy-text">"Last 30 days ↓"</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2 — QUERY RESULT
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">2</div>
+    <div>
+      <div class="page-title">Query Result &amp; Chart</div>
+      <div class="page-sub">Shown immediately after query runs. Displays generated SQL, results table, auto-chart, AI insight, and follow-up ask bar. The richest screen in the product.</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+      <span class="tag tag-teal">Core output</span>
+      <span class="tag tag-violet">AI-generated</span>
+    </div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar" style="height:24px;font-size:9px;">query context bar — question + meta + actions</div></div>
+        <div class="ld-row"><div class="ld-block" style="background:#DBEAFE;color:#1E40AF;height:18px;flex:1;font-size:9px;font-weight:600;">follow-up ask bar</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;display:flex;gap:5px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+              <div class="ld-block" style="background:#0F172A;color:#7DD3FC;height:55px;font-size:9px;border-radius:5px;">SQL block (dark)</div>
+              <div class="ld-block ld-main" style="min-height:80px;font-size:9px;">results table + tabs</div>
+            </div>
+            <div style="width:130px;display:flex;flex-direction:column;gap:5px;">
+              <div class="ld-block ld-main" style="min-height:80px;font-size:9px;">bar chart</div>
+              <div class="ld-block" style="background:#F0FDFA;color:#0F766E;height:40px;font-size:9px;border-radius:5px;">AI insight</div>
+            </div>
+          </div>
+        </div>
+        <div class="ld-note">Split: fluid left · 420px fixed right panel.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Query context bar specs</div>
+        <table class="prop-table">
+          <tr><th>Element</th><th>Detail</th></tr>
+          <tr><td>Back button</td><td>Ghost, icon only, 32px. Returns to dashboard.</td></tr>
+          <tr><td>Question text</td><td>14px 600. Single-line truncated with ellipsis.</td></tr>
+          <tr><td>Meta row</td><td>DB badge · run time · row count. 11px muted.</td></tr>
+          <tr><td>Action buttons</td><td>Export CSV · Save Report · New Question (primary).</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">SQL block</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Dark container</span> — #0F172A bg, 14px border-radius. IBM Plex Mono 12.5px.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Syntax tokens</span> — keywords blue (#7DD3FC), functions violet (#A78BFA), tables teal (#6EE7B7), strings amber (#FCD34D), comments gray.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Copy button</span> — top-right, small ghost. Copies raw SQL to clipboard.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Edit toggle</span> — "Edit SQL" makes textarea editable. "Re-run" re-executes.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Results table</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Tab bar</span> — Table / Chart / Raw JSON. 13px 500. 1px active border.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Header row</span> — 11px uppercase muted. Sort arrows on hover. Sticky.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Rank badge</span> — 20px square, gold/silver/bronze for top 3.</div></div>
+        <div class="comp"><div class="comp-dot violet"></div><div class="comp-text"><span class="comp-name">Category tags</span> — Colored pills (blue = Electronics, teal = Furniture).</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Numeric cells</span> — tabular-nums, right-aligned. 500 weight.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Pagination</span> — "Showing X of Y · Prev / Next" footer row.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Chart panel</div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Horizontal bar chart</span> — teal primary bars, violet secondary. 10px height per bar.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Chart type toggle</span> — Bar / Pie ghost buttons, top-right of card.</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+
+      <div class="section">
+        <div class="section-label">SQL block</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Default</span><span class="state-desc">Read-only display. Copy button visible on hover.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Editing</span><span class="state-desc">Textarea becomes editable, border turns blue. "Re-run" appears.</span></div>
+          <div class="state-row"><span class="state-badge s-error">SQL error</span><span class="state-desc">Red left border. Error line highlighted. Error badge top-right.</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Results table</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">Skeleton rows (5) with shimmer. Header stays visible.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Success</span><span class="state-desc">Rows fade in staggered 50ms each. Count badge updates.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">0 rows</span><span class="state-desc">"Your query ran successfully but returned no results." Suggest refining.</span></div>
+          <div class="state-row"><span class="state-badge s-error">DB error</span><span class="state-desc">Red banner above table. Error code + message. "Edit SQL" CTA.</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Follow-up ask bar</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Idle</span><span class="state-desc">Gray border. Placeholder visible. Context-aware suggestion chips.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Running</span><span class="state-desc">Spinner replaces Ask button. Input locked.</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Chart</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">Skeleton bars animate left-to-right.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">Non-chartable</span><span class="state-desc">"This result can't be visualized automatically." Table tab stays active.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Context bar question</div>
+        <div class="copy-text">"What are the top 10 products by revenue this quarter?"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Meta row</div>
+        <div class="copy-text">"sales_db · orders + products · Ran in 1.2s · 10 rows"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">SQL badge</div>
+        <div class="copy-text">"Generated SQL"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Follow-up placeholder</div>
+        <div class="copy-text">"Ask a follow-up… e.g. Show only Electronics category"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">AI insight</div>
+        <div class="copy-text">"Electronics dominates with 3 of the top 5 products. The Pro Wireless Headset X1 alone accounts for 7.7% of Q1 revenue."</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">0 rows message</div>
+        <div class="copy-text">"Query ran successfully but returned no results. Try adjusting your date range or filters."</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">DB error message</div>
+        <div class="copy-text">"column 'product_name' does not exist — did you mean 'name'? Edit the SQL above to fix."</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Export button</div>
+        <div class="copy-text">"Export CSV" · "Save report" · "Share link"</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3 — AI PROCESSING
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">3</div>
+    <div>
+      <div class="page-title">AI Processing State</div>
+      <div class="page-sub">Transitional screen between ask and result. Shows live 5-step progress pipeline: intent parsing → schema mapping → SQL generation → query execution → insight generation.</div>
+    </div>
+    <div style="margin-left:auto;"><span class="tag tag-blue">Transition</span></div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar" style="height:22px;font-size:9px;">"Processing query…" + spinner + Cancel</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px;padding-left:5px;">
+            <div class="ld-block" style="background:#DBEAFE;color:#1E40AF;height:22px;font-size:9px;font-weight:600;">question recap card</div>
+            <div class="ld-block ld-main" style="min-height:90px;font-size:9px;">5-step progress pipeline</div>
+            <div class="ld-block" style="background:#0F172A;color:#7DD3FC;height:50px;font-size:9px;border-radius:5px;">SQL preview (streaming)</div>
+          </div>
+        </div>
+        <div class="ld-note">Center column max-width 720px, auto margin. Focus on single task.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Step states</div>
+        <table class="prop-table">
+          <tr><th>Step</th><th>Visual</th></tr>
+          <tr><td>Done</td><td>Green circle + checkmark. Green label. "Done" badge.</td></tr>
+          <tr><td>Active</td><td>Blue spinner (rotating). Blue label + sub-text. "In progress" badge.</td></tr>
+          <tr><td>Pending</td><td>Gray empty circle. Muted text. 40% opacity row.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">Question recap card</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Blue left-border card</span> — 3px solid primary. Label "ANALYZING YOUR QUESTION" 11px uppercase.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Question text</span> — 15px 600. Full question in quotes.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Step pipeline</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Step icon</span> — 28px circle. Colors per state (see layout). Spinner uses CSS animation.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Step title</span> — 13px 500. Active step shows blue color.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Sub-text</span> — 11px muted. Shows what was found or current action.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Status badge</span> — Done (green) / In progress (blue) / Pending (gray).</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Progress bar</div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Track</span> — 5px height, full width, bg-secondary. Teal→blue gradient fill.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">ETA text</span> — 11px muted below bar. "Estimated 3–4 seconds remaining."</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">SQL preview</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Streaming cursor</span> — 8×14px block blinks at end of SQL. CSS animation steps(1).</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Partial SQL</span> — Tokens appear as generated. Same syntax colors as result screen.</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+
+      <div class="section">
+        <div class="section-label">Overall screen states</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Step 1–2</span><span class="state-desc">Intent + schema. Usually sub-1s. Appears briefly or may skip.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Step 3</span><span class="state-desc">SQL generation. SQL preview block becomes visible with streaming text.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Step 4</span><span class="state-desc">Query running. SQL preview locked. Spinner on progress bar.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Step 5</span><span class="state-desc">Insight gen. "Generating insights…" sub-text. Nearly complete.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Complete</span><span class="state-desc">All steps turn green. Auto-navigates to Result screen in 400ms.</span></div>
+          <div class="state-row"><span class="state-badge s-error">Timeout</span><span class="state-desc">Step 4 turns red after 30s. Error card replaces progress. "Retry" + "Edit SQL".</span></div>
+          <div class="state-row"><span class="state-badge s-error">Schema miss</span><span class="state-desc">Step 2 turns amber. "Table 'ordrs' not found — did you mean 'orders'?" inline.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Topbar label</div>
+        <div class="copy-text">"Processing query…"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Step 1 — done</div>
+        <div class="copy-text">Title: "Understanding intent" · Sub: "Identified: CLV analysis + first-purchase attribution"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Step 2 — done</div>
+        <div class="copy-text">Title: "Mapping schema" · Sub: "Found: customers, orders, products, channels (4 tables)"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Step 3 — active</div>
+        <div class="copy-text">Title: "Generating SQL" · Sub: "Building CLV calculation with window functions…"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Step 4 — pending</div>
+        <div class="copy-text">Title: "Running query" · Sub: "Waiting…"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Step 5 — pending</div>
+        <div class="copy-text">Title: "Generating insights" · Sub: "Waiting…"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">Progress ETA</div>
+        <div class="copy-text">"Estimated 3–4 seconds remaining"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Cancel button</div>
+        <div class="copy-text">"Cancel"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Timeout error</div>
+        <div class="copy-text">"Query timed out after 30s. Your database may be under load — try again or simplify the query."</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 4 — QUERY HISTORY
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">4</div>
+    <div>
+      <div class="page-title">Query History &amp; Saved Reports</div>
+      <div class="page-sub">Browse, search, filter, rerun, and save all past queries. Grouped by date. Supports tabs for Mine / Team / Saved / Scheduled views.</div>
+    </div>
+    <div style="margin-left:auto;"><span class="tag tag-gray">Secondary navigation</span></div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar" style="height:22px;font-size:9px;">"Query History" + search + New Query</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;padding-left:5px;display:flex;flex-direction:column;gap:5px;">
+            <div class="ld-block" style="background:#F1F5F9;color:var(--text3);height:18px;font-size:9px;font-weight:600;">tab bar: All · Saved · Scheduled · Shared</div>
+            <div class="ld-block" style="background:#F8FAFC;color:var(--text3);height:16px;font-size:9px;font-weight:600;">filter row + result count</div>
+            <div class="ld-block ld-main" style="min-height:110px;font-size:9px;">query list — date-grouped rows</div>
+          </div>
+        </div>
+        <div class="ld-note">Full-width list. No side panel. Single column of results.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Query row anatomy</div>
+        <table class="prop-table">
+          <tr><th>Element</th><th>Detail</th></tr>
+          <tr><td>Title</td><td>13px 600. Truncated 1 line. Full text on hover tooltip.</td></tr>
+          <tr><td>SQL preview</td><td>12px muted. 1-line truncated. Monospace font.</td></tr>
+          <tr><td>Tags row</td><td>DB badge + chart type + row count + saved indicator.</td></tr>
+          <tr><td>Time</td><td>"2 minutes ago" · "Yesterday" · absolute date on hover.</td></tr>
+          <tr><td>Actions</td><td>"Rerun" + "View" / "Save". Right-aligned, visible on hover.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">Topbar search</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Search input</span> — 260px, 13px, search icon left. Filters list in real-time (client-side).</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Tab bar</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">4 tabs</span> — All / Saved / Scheduled / Shared. Count badge on each if &gt;0.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Filter row</div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">DB filter chips</span> — "All databases" default + one per connected DB. Toggle.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Result count</span> — "48 queries" right-aligned. Updates live on filter.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Query row card</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Accent border</span> — Active / pinned queries get 3px left border in primary blue.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Saved badge</span> — Green tag "Saved". If also scheduled: "Saved · Scheduled weekly".</div></div>
+        <div class="comp"><div class="comp-dot violet"></div><div class="comp-text"><span class="comp-name">Chart type tag</span> — "Bar chart" / "Line chart" / "Table" / "Pie" — violet/blue/gray.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Date group label</span> — 11px uppercase muted: "Today" / "Yesterday" / "Apr 18".</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+
+      <div class="section">
+        <div class="section-label">List states</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">4 skeleton rows with shimmer. Tab bar disabled.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Loaded</span><span class="state-desc">Rows grouped by date. Staggered fade-in 30ms each.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">No history</span><span class="state-desc">Centered illustration + CTA. "You haven't run any queries yet."</span></div>
+          <div class="state-row"><span class="state-badge s-empty">No search results</span><span class="state-desc">"No queries match '[search term]'. Try different keywords."</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Row interactions</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Hover</span><span class="state-desc">Slight bg-secondary tint. Rerun/View buttons appear. Cursor pointer.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Rerun click</span><span class="state-desc">Navigates to Screen 3 (processing) with same query pre-filled.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Saving</span><span class="state-desc">Save button shows spinner. Row gains "Saved" badge on success.</span></div>
+          <div class="state-row"><span class="state-badge s-error">Delete</span><span class="state-desc">Row slides out with 200ms. Undo toast appears for 5s.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Page title</div>
+        <div class="copy-text">"Query History"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Search placeholder</div>
+        <div class="copy-text">"Search queries…"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Date groups</div>
+        <div class="copy-text">"Today" · "Yesterday" · "This week" · "Apr 14"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Row actions</div>
+        <div class="copy-text">"Rerun" · "View" · "Save" · "Share" · "Delete"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">Saved + scheduled</div>
+        <div class="copy-text">"Saved · Scheduled weekly"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Empty state</div>
+        <div class="copy-text">"You haven't run any queries yet. Head to the dashboard and ask your first question."</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">No search results</div>
+        <div class="copy-text">"No queries match 'churn rate'. Try different keywords or clear filters."</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Delete undo toast</div>
+        <div class="copy-text">"Query deleted. Undo"</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 5 — CONNECT DATA SOURCE
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">5</div>
+    <div>
+      <div class="page-title">Connect Data Source</div>
+      <div class="page-sub">Modal overlay on first login (and from Settings &gt; Data Sources). User selects a DB type, enters credentials, and tests connection. Single modal — no multi-step wizard.</div>
+    </div>
+    <div style="margin-left:auto;"><span class="tag tag-blue">Onboarding gate</span></div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div style="background:rgba(15,23,42,.18);border-radius:8px;padding:10px;min-height:110px;display:flex;align-items:center;justify-content:center;">
+          <div style="background:#fff;border-radius:10px;padding:10px;width:100%;border:1px solid var(--border);">
+            <div style="font-size:9px;font-weight:700;color:var(--primary);text-align:center;margin-bottom:6px;">MODAL — 600px wide · centered</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div class="ld-block" style="background:#EFF6FF;color:#1D4ED8;height:16px;font-size:9px;font-weight:600;">icon + title + subtitle</div>
+              <div class="ld-block ld-main" style="height:55px;font-size:9px;">connector cards list (scrollable)</div>
+              <div class="ld-block" style="background:#F1F5F9;color:var(--text3);height:14px;font-size:9px;font-weight:600;">divider + CTA buttons</div>
+            </div>
+          </div>
+        </div>
+        <div class="ld-note">Semi-transparent overlay dims ghosted dashboard behind. blur(2px).</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Modal specs</div>
+        <table class="prop-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Width</td><td>600px fixed</td></tr>
+          <tr><td>Overlay</td><td>rgba(15,23,42,.4) + backdrop blur 2px</td></tr>
+          <tr><td>Border radius</td><td>16px</td></tr>
+          <tr><td>Shadow</td><td>0 20px 60px rgba(0,0,0,.18)</td></tr>
+          <tr><td>Connector cards</td><td>Max 5 visible. Scroll if more.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">Modal header</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">DB icon</span> — 52px rounded square, blue bg. SVG database icon.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Title</span> — 17px 700. "Connect your first data source".</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Subtitle</span> — 13px muted. One sentence description.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Connector card</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">DB logo</span> — 36px square, rounded 8px, emoji or icon. e.g. 🐘 for PostgreSQL.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Name + desc</span> — 13px 600 name + 11px muted desc inline.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Action</span> — "Connect" (secondary btn) or green "Connected" tag.</div></div>
+        <div class="comp"><div class="comp-dot violet"></div><div class="comp-text"><span class="comp-name">Connected state</span> — card bg #F0FDF4, border #BBF7D0. No button.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Credential form (expanded)</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Form fields</span> — Host, Port, Database, Username, Password. Standard 36px inputs.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Test Connection</span> — secondary button. Shows spinner then success/error inline.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">SSL toggle</span> — checkbox "Require SSL". Default on.</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+      <div class="section">
+        <div class="section-label">Connector card</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Default</span><span class="state-desc">White card, gray border. "Connect" button right.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Expanded</span><span class="state-desc">Card expands to show credential form. Others collapse.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Testing</span><span class="state-desc">"Test Connection" shows spinner. Fields locked.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Connected</span><span class="state-desc">Green bg + border. "Connected · X tables" sub-text.</span></div>
+          <div class="state-row"><span class="state-badge s-error">Failed</span><span class="state-desc">Red inline message: "Connection refused. Check host and port."</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">CTA buttons</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">No connection</span><span class="state-desc">"Continue to Dashboard" disabled (gray). "Skip for now" ghost active.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Connected</span><span class="state-desc">"Continue to Dashboard →" activates (primary blue). Skip hidden.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Modal title</div>
+        <div class="copy-text">"Connect your first data source"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Modal subtitle</div>
+        <div class="copy-text">"Querion works with your existing databases. Choose a source to start asking questions in plain English."</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Connector descriptions</div>
+        <div class="copy-text">"PostgreSQL" · "Connect your MySQL database" · "Connect via IAM or access key" · "Analyze flat files directly"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Connected badge</div>
+        <div class="copy-text">"sales_db · Connected · 14 tables visible"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">Test success</div>
+        <div class="copy-text">"Connection successful — 14 tables found"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Test failure</div>
+        <div class="copy-text">"Connection refused. Check your host and port, then try again."</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Skip link</div>
+        <div class="copy-text">"Skip for now" (ghost, not recommended — add tooltip: "You'll need a connection to run queries")</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Continue CTA</div>
+        <div class="copy-text">"Continue to Dashboard →"</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 6 — EMPTY / NEW QUERY
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">6</div>
+    <div>
+      <div class="page-title">New Query — Empty State</div>
+      <div class="page-sub">The focused "ask" screen before any result exists. Hero copy, centered ask bar, 6 suggestion cards. Removes all distraction from the primary action.</div>
+    </div>
+    <div style="margin-left:auto;"><span class="tag tag-teal">Primary CTA screen</span></div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar" style="height:22px;font-size:9px;">"New Query" + DB chip</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px;min-height:110px;">
+            <div class="ld-block" style="background:#DBEAFE;color:#1E40AF;width:44px;height:22px;font-size:9px;border-radius:6px;">icon</div>
+            <div style="font-size:9px;color:var(--text3);font-weight:600;">hero title + subtitle</div>
+            <div class="ld-block" style="background:#EFF6FF;color:#1D4ED8;width:90%;height:28px;font-size:9px;border-radius:6px;">ask bar — 600px max</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:90%;">
+              <div class="ld-block ld-main" style="height:28px;font-size:9px;">sug</div>
+              <div class="ld-block ld-main" style="height:28px;font-size:9px;">sug</div>
+              <div class="ld-block ld-main" style="height:28px;font-size:9px;">sug</div>
+            </div>
+          </div>
+        </div>
+        <div class="ld-note">Content centered vertically in remaining viewport. Max-width 640px.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Alignment</div>
+        <table class="prop-table">
+          <tr><th>Element</th><th>Alignment</th></tr>
+          <tr><td>Hero icon</td><td>Center. 64×64px. Blue-tinted rounded square.</td></tr>
+          <tr><td>Title</td><td>Center. 22px 700. Max 1 line.</td></tr>
+          <tr><td>Subtitle</td><td>Center. 14px muted. Max-width 440px.</td></tr>
+          <tr><td>Ask bar</td><td>Center. Max-width 600px. Full-width textarea.</td></tr>
+          <tr><td>Suggestions</td><td>3-col grid. Max-width 640px. Center-aligned.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">Hero block</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Icon wrap</span> — 64px. bg: linear teal→blue 50% stops. Border 1px blue-200.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">H1</span> — "Ask your data anything". 22px 700. Centered.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Subtitle</span> — 14px muted. 2 lines max. Centered.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Ask bar (large)</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Textarea</span> — 2-row default, auto-grow. 15px. Blue focus ring.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Label</span> — "YOUR QUESTION" 11px uppercase above field.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Run Query button</span> — "Run Query →" Primary. 40px height. Right-aligned in bar.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Suggestion cards (×6)</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Icon</span> — 28px rounded. Blue / Teal / Violet alternating.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Text</span> — 12px 500. 2 lines max. Suggestion text in full.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Click action</span> — Fills ask bar with suggestion text. User can edit before running.</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+      <div class="section">
+        <div class="section-label">Ask bar</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-empty">Empty</span><span class="state-desc">Placeholder visible. "Run Query" button disabled (gray, not clickable).</span></div>
+          <div class="state-row"><span class="state-badge s-default">Typing</span><span class="state-desc">Placeholder gone. Button activates (blue). Character count appears if &gt;200 chars.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Suggestion clicked</span><span class="state-desc">Text fills field. Button activates. Card gets blue border.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Submitted</span><span class="state-desc">Navigate to Screen 3. Entire screen fades out 200ms.</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Suggestion cards</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Default</span><span class="state-desc">White bg, gray border. Icon visible.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Hover</span><span class="state-desc">Border turns blue. Slight bg tint. Cursor pointer.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Selected</span><span class="state-desc">Blue border 2px. Bg #F0F7FF.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Hero title</div>
+        <div class="copy-text">"Ask your data anything"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Hero subtitle</div>
+        <div class="copy-text">"Type a business question in plain English. Querion will write the SQL, run it, and explain what it found — in seconds."</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Ask bar placeholder</div>
+        <div class="copy-text">"e.g. Show me revenue by region for Q1 2025 compared to Q1 2024…"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Suggestions (row 1)</div>
+        <div class="copy-text">"Top 10 products by revenue this quarter" · "Monthly churn rate by customer segment" · "Revenue forecast for next 3 months"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">Suggestions (row 2)</div>
+        <div class="copy-text">"Orders pending more than 7 days by region" · "New vs returning customers last 6 months" · "Average order value by product category"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Run button</div>
+        <div class="copy-text">"Run Query →"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Long query warning</div>
+        <div class="copy-text">"Your question is quite long — consider breaking it into two separate queries for cleaner results."</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 7 — SETTINGS
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">7</div>
+    <div>
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Two-column layout: settings nav left, content right. Active section: Profile &amp; Preferences. Covers account, AI behaviour toggles, data sources, notifications, team, billing.</div>
+    </div>
+    <div style="margin-left:auto;"><span class="tag tag-gray">Configuration</span></div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar" style="height:22px;font-size:9px;">"Settings"</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;display:flex;gap:0;min-height:110px;">
+            <div style="width:60px;background:#F8FAFC;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:3px;padding:6px 4px;">
+              <div style="height:14px;background:#EFF6FF;border-radius:4px;font-size:8px;color:#1D4ED8;display:flex;align-items:center;padding:0 4px;font-weight:700;">Profile</div>
+              <div style="height:14px;background:transparent;border-radius:4px;font-size:8px;color:var(--text3);display:flex;align-items:center;padding:0 4px;">Sources</div>
+              <div style="height:14px;background:transparent;border-radius:4px;font-size:8px;color:var(--text3);display:flex;align-items:center;padding:0 4px;">AI prefs</div>
+              <div style="height:14px;background:transparent;border-radius:4px;font-size:8px;color:var(--text3);display:flex;align-items:center;padding:0 4px;">Billing</div>
+            </div>
+            <div class="ld-block ld-main" style="flex:1;font-size:9px;">form + toggle rows + save</div>
+          </div>
+        </div>
+        <div class="ld-note">Settings nav: 200px. Content: fluid. Both scrollable independently.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Settings nav items</div>
+        <table class="prop-table">
+          <tr><th>Item</th><th>Content section</th></tr>
+          <tr><td>Profile</td><td>Name, email, avatar, timezone, role</td></tr>
+          <tr><td>Data sources</td><td>Manage connections, test, remove</td></tr>
+          <tr><td>AI preferences</td><td>Charts, insights, SQL preview, auto-save</td></tr>
+          <tr><td>Notifications</td><td>Email + in-app alerts for scheduled queries</td></tr>
+          <tr><td>Team</td><td>Invite members, set roles</td></tr>
+          <tr><td>Billing</td><td>Plan, usage meter, upgrade CTA</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">Profile card</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Avatar</span> — 52px circle. Initials. Gradient bg. "Change photo" button right.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">2-col form grid</span> — First / Last / Email (full-width) / Role / Timezone.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Input fields</span> — 36px, 1px border, 8px radius. Blue focus ring.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">AI preferences card</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Toggle row</span> — Label (13px 500) + sub-text (12px muted) left. Toggle switch right.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Toggle switch</span> — 36×20px pill. Primary blue when on. Smooth 200ms transition.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Divider</span> — 1px border between rows. Last row no border.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Footer actions</div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">"Discard changes"</span> — secondary button. Resets form to saved values.</div></div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">"Save changes"</span> — primary button. Disabled until form is dirty.</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+      <div class="section">
+        <div class="section-label">Form states</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Default</span><span class="state-desc">Inputs show saved values. Save button disabled.</span></div>
+          <div class="state-row"><span class="state-badge s-default">Dirty</span><span class="state-desc">Any change enables Save button. Discard becomes active.</span></div>
+          <div class="state-row"><span class="state-badge s-loading">Saving</span><span class="state-desc">Save button shows spinner. Inputs locked.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Saved</span><span class="state-desc">Toast: "Changes saved". Button resets to disabled.</span></div>
+          <div class="state-row"><span class="state-badge s-error">Validation</span><span class="state-desc">Red border + helper text below field. e.g. "Enter a valid email."</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Toggle states</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">On</span><span class="state-desc">Blue pill. Thumb right. Immediate local update (optimistic).</span></div>
+          <div class="state-row"><span class="state-badge s-default">Off</span><span class="state-desc">Gray pill. Thumb left.</span></div>
+          <div class="state-row"><span class="state-badge s-error">Save error</span><span class="state-desc">Toggle reverts to previous state. Error toast shown.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Section title</div>
+        <div class="copy-text">"Profile & Preferences"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Section subtitle</div>
+        <div class="copy-text">"Manage your account and personalise Querion to your workflow."</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">AI pref toggles</div>
+        <div class="copy-text">"Auto-generate chart" · "Show AI insights panel" · "SQL preview while typing" · "Save all queries automatically"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Toggle sub-text</div>
+        <div class="copy-text">"Show a visualization automatically after every query result"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">Save success toast</div>
+        <div class="copy-text">"Changes saved"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Validation error</div>
+        <div class="copy-text">"Enter a valid email address." · "Name can't be empty."</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Button labels</div>
+        <div class="copy-text">"Save changes" · "Discard changes"</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 8 — SCHEMA BROWSER
+═══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="screen-num">8</div>
+    <div>
+      <div class="page-title">Schema Browser</div>
+      <div class="page-sub">Two-panel layout: table list left, column detail right. Helps users understand the data model before asking questions. AI tip strip gives query guidance per table.</div>
+    </div>
+    <div style="margin-left:auto;"><span class="tag tag-teal">Data exploration</span></div>
+  </div>
+  <div class="page-body">
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#EEF2FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="10" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="#4338CA" stroke-width="1.2"/></svg></div>Layout structure</div>
+      <div class="layout-diagram">
+        <div class="ld-row"><div class="ld-block ld-topbar" style="height:22px;font-size:9px;">breadcrumb + search + "Ask about this table"</div></div>
+        <div class="ld-row" style="align-items:stretch;">
+          <div class="ld-block ld-sidebar">sidebar 220px</div>
+          <div style="flex:1;display:flex;gap:0;min-height:110px;">
+            <div style="width:60px;background:#F8FAFC;border-right:1px solid var(--border);padding:5px 4px;">
+              <div style="font-size:8px;font-weight:700;color:var(--muted);margin-bottom:4px;padding-left:2px;">Tables</div>
+              <div style="height:14px;background:#EFF6FF;border-radius:4px;font-size:8px;color:#1D4ED8;margin-bottom:2px;padding-left:3px;display:flex;align-items:center;">orders</div>
+              <div style="height:12px;border-radius:4px;font-size:8px;color:var(--text3);margin-bottom:2px;padding-left:3px;display:flex;align-items:center;">customers</div>
+              <div style="height:12px;border-radius:4px;font-size:8px;color:var(--text3);margin-bottom:2px;padding-left:3px;display:flex;align-items:center;">products</div>
+            </div>
+            <div style="flex:1;padding:6px;display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:9px;font-weight:700;color:var(--text);">orders <span style="background:#EFF6FF;color:#1D4ED8;border-radius:3px;padding:1px 3px;font-size:8px;">PostgreSQL</span></div>
+              <div class="ld-block ld-main" style="flex:1;font-size:9px;">column table (type, nullable, FK)</div>
+              <div class="ld-block" style="background:#F0FDFA;color:#0F766E;height:18px;font-size:9px;border-radius:4px;">AI tip strip</div>
+            </div>
+          </div>
+        </div>
+        <div class="ld-note">Table list: 220px. Schema detail: fluid. Both scroll independently.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Column table structure</div>
+        <table class="prop-table">
+          <tr><th>Column</th><th>Detail</th></tr>
+          <tr><td>Name</td><td>Monospace pill. PK = blue, FK = violet, regular = gray.</td></tr>
+          <tr><td>Type</td><td>Gray badge. e.g. <span class="mono">UUID</span> <span class="mono">TIMESTAMPTZ</span></td></tr>
+          <tr><td>Description</td><td>12px muted. AI-inferred or user-written.</td></tr>
+          <tr><td>Nullable</td><td>"NOT NULL" green · "NULLABLE" amber.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F0FDF4;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="4" width="10" height="6" rx="1.5" stroke="#15803D" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#15803D" stroke-width="1.2"/></svg></div>Components</div>
+
+      <div class="section">
+        <div class="section-label">Table list</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Table row</span> — 12px 500. Name left, col count right (muted). 32px height.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Active state</span> — bg #EFF6FF, text primary blue, 8px radius.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Section header</span> — "Tables (14)" 10px uppercase muted.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Topbar breadcrumb</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Crumbs</span> — "sales_db / orders". "/" separator in muted. Active = text-primary 500.</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Ask button</span> — "Ask about this table" primary small. Prefills ask bar with table name.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Column detail table</div>
+        <div class="comp"><div class="comp-dot"></div><div class="comp-text"><span class="comp-name">Column name cell</span> — monospace pill. Colors: PK=blue, FK=violet, regular=gray-bg.</div></div>
+        <div class="comp"><div class="comp-dot gray"></div><div class="comp-text"><span class="comp-name">Type badge</span> — gray pill. 10px. e.g. "UUID" "NUMERIC(10,2)" "TIMESTAMPTZ".</div></div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Nullable tag</span> — "NOT NULL" green · "NULLABLE" amber. 10px badge.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">AI tip strip</div>
+        <div class="comp"><div class="comp-dot teal"></div><div class="comp-text"><span class="comp-name">Container</span> — Teal-tinted. Same as dashboard insight strip. 48px min.</div></div>
+        <div class="comp"><div class="comp-dot violet"></div><div class="comp-text"><span class="comp-name">Tip text</span> — 13px italic. Inline code spans in monospace for column names.</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#FFFBEB;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#B45309" stroke-width="1.2"/><path d="M6 4v2.5M6 8v.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg></div>States</div>
+      <div class="section">
+        <div class="section-label">Table list</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">8 skeleton rows shimmer. Header "Tables (…)" shows spinner.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Loaded</span><span class="state-desc">List renders instantly. First table auto-selected.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">No tables</span><span class="state-desc">"No tables found in this database. Check your connection permissions."</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Column detail</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-loading">Loading</span><span class="state-desc">Skeleton table rows. Table name + badges still visible.</span></div>
+          <div class="state-row"><span class="state-badge s-success">Loaded</span><span class="state-desc">Full column table + AI tip. Rows highlight on hover.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">No columns</span><span class="state-desc">Rare. "No columns returned for this table."</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-label">Search</div>
+        <div class="states">
+          <div class="state-row"><span class="state-badge s-default">Searching</span><span class="state-desc">Filters both table list AND column names in real-time. No server call.</span></div>
+          <div class="state-row"><span class="state-badge s-empty">No match</span><span class="state-desc">"No tables or columns match '[term]'."</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-title"><div class="col-icon" style="background:#F5F3FF;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microcopy</div>
+      <div class="copy-item">
+        <div class="copy-label">Breadcrumb</div>
+        <div class="copy-text">"sales_db / orders"</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">Ask button</div>
+        <div class="copy-text">"Ask about this table"</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Table list header</div>
+        <div class="copy-text">"Tables (14)"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">Table meta</div>
+        <div class="copy-text">"1.4M rows · ~2.3 GB"</div>
+      </div>
+      <div class="copy-item violet">
+        <div class="copy-label">AI-inferred description</div>
+        <div class="copy-text">"Core order transactions including line items, status, and pricing. Joins to customers (customer_id), products (product_id), and regions (region_id)."</div>
+      </div>
+      <div class="copy-item teal">
+        <div class="copy-label">AI tip</div>
+        <div class="copy-text">"This table is most often queried with JOIN to products and filtered on created_at. The status column has 3.2% NULLs — consider using COALESCE(status, 'unknown') in filters."</div>
+      </div>
+      <div class="copy-item gray">
+        <div class="copy-label">Search placeholder</div>
+        <div class="copy-text">"Search tables & columns…"</div>
+      </div>
+      <div class="copy-item">
+        <div class="copy-label">No tables error</div>
+        <div class="copy-text">"No tables found. Check your connection permissions or reconnect the database."</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+</body>
+</html>
