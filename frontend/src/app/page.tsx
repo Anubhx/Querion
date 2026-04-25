@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNav } from '@/lib/NavContext';
 import { AskBar } from '@/components/ui/AskBar';
 import { MetricCard } from '@/components/ui/MetricCard';
@@ -95,6 +95,31 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<ResultTab>('Table');
   const [recentQueries, setRecentQueries] = useState<RecentQuery[]>(INITIAL_RECENT);
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+
+  // ── Load history from localStorage ───────────────────────────────────────
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('querionHistory');
+      if (saved) {
+        setHistoryEntries(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.warn("Failed to load history from local storage", e);
+    } finally {
+      setIsHistoryLoaded(true);
+    }
+  }, []);
+
+  // ── Save history to localStorage ───────────────────────────────────────
+  useEffect(() => {
+    if (!isHistoryLoaded) return;
+    try {
+      localStorage.setItem('querionHistory', JSON.stringify(historyEntries));
+    } catch (e) {
+      console.warn("Failed to save history to local storage", e);
+    }
+  }, [historyEntries, isHistoryLoaded]);
 
   // ── Run query (callable from any view) ───────────────────────────────────
   const handleQuery = useCallback(async (question: string) => {
@@ -295,12 +320,22 @@ export default function Page() {
             </div>
 
             {activeTab === 'Table' && (
-              <DataTable columns={columns} rows={result.data} totalRows={result.data.length} />
+              result.data.length > 0 ? (
+                <DataTable columns={columns} rows={result.data} totalRows={result.data.length} />
+              ) : (
+                <div className="h-36 flex items-center justify-center text-[13px] text-text-3">
+                  No results found for this query.
+                </div>
+              )
             )}
 
             {activeTab === 'Chart' && (
               <div className="p-4">
-                {chartInfo ? (
+                {result.data.length === 0 ? (
+                  <div className="h-36 flex items-center justify-center text-[13px] text-text-3">
+                    No data available to visualize.
+                  </div>
+                ) : chartInfo ? (
                   <ChartViewer type="bar" data={chartInfo.chartData} xKey={chartInfo.xKey} yKey={chartInfo.yKey} title="Query Result Chart" />
                 ) : (
                   <div className="h-36 flex items-center justify-center text-[13px] text-text-3">

@@ -1,0 +1,51 @@
+Retrieving project…
+Deploying anubhav-rajs-projects-19c63b2b/frontend
+Uploading [--------------------] (0.0B/72B)
+Uploading [====================] (72.0B/72B)
+Inspect: https://vercel.com/anubhav-rajs-projects-19c63b2b/frontend/9ihPjYnV42CZxT6xvx8AoGH7Erow [2s]
+Production: https://frontend-q3zj0wmh8-anubhav-rajs-projects-19c63b2b.vercel.app [2s]
+https://frontend-q3zj0wmh8-anubhav-rajs-projects-19c63b2b.vercel.appBuilding...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 35 deployment files...
+Building: Restored build cache from previous deployment (GQiGmTtFRZkb6azciEibiZE6Ak2n)
+Building: Running "vercel build"
+Building: Vercel CLI 51.6.1
+Building: Installing dependencies...
+Building: Installing dependencies...
+Building: added 41 packages, removed 1 package, and changed 49 packages in 10s
+Building: 145 packages are looking for funding
+Building: run `npm fund` for details
+Building: Detected Next.js version: 16.2.4
+Building: Running "npm run build"
+Building: > frontend@0.1.0 build
+Building: > next build
+Building: Applying modifyConfig from Vercel
+Building: ▲ Next.js 16.2.4 (Turbopack)
+Building: Creating an optimized production build ...
+Building: ✓ Compiled successfully in 7.8s
+Building: Running TypeScript ...
+Building: Finished TypeScript in 4.3s ...
+Building: Collecting page data using 1 worker ...
+Building: Generating static pages using 1 worker (0/4) ...
+Building: Generating static pages using 1 worker (1/4)
+Building: Generating static pages using 1 worker (2/4)
+Building: Generating static pages using 1 worker (3/4)
+Building: ✓ Generating static pages using 1 worker (4/4) in 182ms
+Building: Finalizing page optimization ...
+Building: Running onBuildComplete from Vercel
+Building: Route (app)
+Building: ┌ ○ /
+Building: └ ○ /_not-found
+Building: ○  (Static)  prerendered as static content
+Building: Build Completed in /vercel/output [24s]
+Building: Deploying outputs...
+[2K[1A[2K[GProduction: https://frontend-q3zj0wmh8-anubhav-rajs-projects-19c63b2b.vercel.app [1m]
+Completing...
+Aliased: https://companylensbyanubhav.vercel.app [1m]
+
+Common next commands:
+- `vercel inspect frontend-q3zj0wmh8-anubhav-rajs-projects-19c63b2b.vercel.app --logs`
+- `vercel redeploy frontend-q3zj0wmh8-anubhav-rajs-projects-19c63b2b.vercel.app`
+> Tip: Run `npx plugins add vercel/vercel-plugin` to enhance your agent experience
