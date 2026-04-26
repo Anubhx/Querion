@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { NavProvider } from "@/lib/NavContext";
@@ -21,20 +22,22 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${ibmPlexMono.variable} antialiased h-screen flex overflow-hidden bg-app-bg text-text-main font-sans`}
-      >
-        <NavProvider>
-          <Sidebar />
-          <main className="flex-1 flex flex-col min-w-0 shrink overflow-hidden">
-            <Topbar />
-            <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-5">
-              {children}
-            </div>
-          </main>
-        </NavProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${inter.variable} ${ibmPlexMono.variable} antialiased h-screen flex overflow-hidden bg-app-bg text-text-main font-sans`}
+        >
+          <NavProvider>
+            <Sidebar />
+            <main className="flex-1 flex flex-col min-w-0 shrink overflow-hidden">
+              <Topbar />
+              <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-5">
+                {children}
+              </div>
+            </main>
+          </NavProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

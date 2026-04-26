@@ -1,11 +1,11 @@
 'use client';
 
 import { useNav, View } from '@/lib/NavContext';
+import { useUser, UserButton } from '@clerk/nextjs';
 
 interface NavItem {
   id: View | null;
   label: string;
-  badge?: string;
   icon: React.ReactNode;
 }
 
@@ -25,7 +25,6 @@ const WORKSPACE_ITEMS: NavItem[] = [
   {
     id: 'history',
     label: 'Query History',
-    badge: '12',
     icon: (
       <svg className="w-4 h-4 shrink-0" viewBox="0 0 16 16" fill="none">
         <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.4" />
@@ -79,6 +78,15 @@ const DATA_ITEMS: NavItem[] = [
 
 export function Sidebar() {
   const { activeView, setActiveView } = useNav();
+  const { user, isLoaded } = useUser();
+
+  const displayName = isLoaded && user
+    ? (user.fullName || user.emailAddresses[0]?.emailAddress || 'User')
+    : '';
+
+  const subtitle = isLoaded && user
+    ? (user.emailAddresses[0]?.emailAddress ?? '')
+    : '';
 
   return (
     <nav className="w-[220px] h-full bg-surface border-r border-border-subtle flex flex-col shrink-0 relative z-10">
@@ -116,11 +124,6 @@ export function Sidebar() {
             >
               <span className={isActive ? 'opacity-100' : 'opacity-70'}>{item.icon}</span>
               {item.label}
-              {item.badge && (
-                <span className={`ml-auto text-[10px] font-semibold py-[1px] px-1.5 rounded-[10px] ${isActive ? 'bg-white text-primary' : 'bg-blue-50 text-primary'}`}>
-                  {item.badge}
-                </span>
-              )}
             </button>
           );
         })}
@@ -140,15 +143,17 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Footer / User */}
+      {/* Footer – real Clerk user */}
       <div className="p-3 border-t border-border-subtle">
         <div className="flex items-center gap-2 p-1.5">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-violet flex items-center justify-center text-[11px] font-bold text-white shrink-0">
-            SR
-          </div>
-          <div>
-            <div className="text-[12px] font-medium text-text-main">Sneha Roy</div>
-            <div className="text-[10px] text-muted">Analytics Lead</div>
+          <UserButton
+            appearance={{
+              elements: { avatarBox: 'w-7 h-7' },
+            }}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-[12px] font-medium text-text-main truncate">{displayName}</div>
+            <div className="text-[10px] text-muted truncate">{subtitle}</div>
           </div>
         </div>
       </div>
