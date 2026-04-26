@@ -1,405 +1,472 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { useNav } from '@/lib/NavContext';
-import { AskBar } from '@/components/ui/AskBar';
-import { MetricCard } from '@/components/ui/MetricCard';
-import { ResultCard } from '@/components/ui/ResultCard';
-import { DataTable } from '@/components/ui/DataTable';
-import { ChartViewer } from '@/components/ui/ChartViewer';
-import { InsightStrip } from '@/components/ui/InsightStrip';
-import { SQLBlock } from '@/components/ui/SQLBlock';
-import { QueryHistory } from '@/components/ui/QueryHistory';
-import { SavedReports } from '@/components/ui/SavedReports';
-import { ScheduledQueries } from '@/components/ui/ScheduledQueries';
-import { runQuery, QueryResponse } from '@/lib/api';
+import Link from 'next/link';
+import { useAuth, UserButton } from '@clerk/nextjs';
 
-// ─── Static data ─────────────────────────────────────────────────────────────
-const METRICS = [
-  { label: 'Total Revenue', value: '$2.4M', delta: '18.2%', deltaType: 'up' as const, deltaLabel: 'vs last month' },
-  { label: 'Active Orders', value: '8,341', delta: '4.5%', deltaType: 'up' as const, deltaLabel: 'vs last month' },
-  { label: 'Avg. Order Value', value: '$287', delta: '2.1%', deltaType: 'down' as const, deltaLabel: 'vs last month' },
-  { label: 'Customer Churn', value: '3.2%', delta: 'improved 0.4%', deltaType: 'up' as const },
+// ─── Feature data ─────────────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Natural Language → SQL',
+    desc: 'Type any business question in plain English. Querion uses Llama 3.3 70B to generate precise PostgreSQL queries instantly.',
+    color: 'from-blue-500/10 to-blue-600/5 border-blue-200/60',
+    iconColor: 'text-blue-600 bg-blue-50',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+      </svg>
+    ),
+    title: 'Interactive Charts',
+    desc: 'Results auto-render as bar, area, or line charts. Switch between Table, Chart, and Raw JSON views with a single click.',
+    color: 'from-violet-500/10 to-violet-600/5 border-violet-200/60',
+    iconColor: 'text-violet-600 bg-violet-50',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M12 8v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Query History',
+    desc: 'Every query is saved with timestamps and row counts. Re-run any past query in one click. History persists across sessions.',
+    color: 'from-teal-500/10 to-teal-600/5 border-teal-200/60',
+    iconColor: 'text-teal-600 bg-teal-50',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L3 8l9 5 9-5-9-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M3 16l9 5 9-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M3 12l9 5 9-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'AI Insights',
+    desc: 'After every query, Querion surfaces a natural-language explanation of the data — trends, anomalies, and recommendations.',
+    color: 'from-orange-500/10 to-orange-600/5 border-orange-200/60',
+    iconColor: 'text-orange-600 bg-orange-50',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Saved Reports',
+    desc: 'Bookmark important queries as reports, name them, and access them instantly from the sidebar. Share with your team.',
+    color: 'from-indigo-500/10 to-indigo-600/5 border-indigo-200/60',
+    iconColor: 'text-indigo-600 bg-indigo-50',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M7 4v2M17 4v2M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    title: 'Safe by Design',
+    desc: 'Only SELECT queries are permitted. All SQL is validated before execution. Automatic row limits prevent runaway queries.',
+    color: 'from-green-500/10 to-green-600/5 border-green-200/60',
+    iconColor: 'text-green-600 bg-green-50',
+  },
 ];
 
-const REVENUE_CHART_DATA = [
-  { month: 'Apr', revenue: 180000 }, { month: 'May', revenue: 210000 },
-  { month: 'Jun', revenue: 195000 }, { month: 'Jul', revenue: 230000 },
-  { month: 'Aug', revenue: 260000 }, { month: 'Sep', revenue: 290000 },
-  { month: 'Oct', revenue: 275000 }, { month: 'Nov', revenue: 310000 },
-  { month: 'Dec', revenue: 340000 }, { month: 'Jan', revenue: 355000 },
-  { month: 'Feb', revenue: 370000 }, { month: 'Mar', revenue: 400000 },
+const STEPS = [
+  {
+    num: '01',
+    title: 'Connect your database',
+    desc: 'Point Querion at your PostgreSQL database. Your schema is automatically detected.',
+  },
+  {
+    num: '02',
+    title: 'Ask in plain English',
+    desc: 'Type questions like "Show me top 10 customers by revenue this quarter" — no SQL needed.',
+  },
+  {
+    num: '03',
+    title: 'Get instant answers',
+    desc: 'See the generated SQL, a clean data table, interactive charts, and an AI explanation — all in seconds.',
+  },
 ];
 
-const TAG_STYLES: Record<string, string> = {
-  teal:   'bg-[#F0FDFA] text-[#0F766E]',
-  blue:   'bg-[#EFF6FF] text-[#1D4ED8]',
-  gray:   'bg-app-bg text-slate border border-border-subtle',
-  violet: 'bg-[#F5F3FF] text-[#6D28D9]',
-};
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-type PageState = 'idle' | 'loading' | 'success' | 'error';
-type ResultTab = 'Table' | 'Chart' | 'Raw JSON';
-
-interface HistoryEntry {
-  question: string;
-  time: string;
-  rowCount: number | null;
-}
-
-interface RecentQuery {
-  q: string;
-  time: string;
-  tag: string;
-  tagColor: string;
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function deriveColumns(data: Record<string, string | number>[]) {
-  if (!data.length) return [];
-  return Object.keys(data[0]).map(key => ({
-    key,
-    label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-    type: typeof data[0][key] === 'number' ? 'number' as const : 'text' as const,
-  }));
-}
-
-function deriveChartInfo(
-  data: Record<string, string | number>[],
-  apiChart: QueryResponse['chart']
-): { chartData: typeof data; xKey: string; yKey: string } | null {
-  if (!apiChart.labels.length || !apiChart.values.length || !data.length) return null;
-  const cols = Object.keys(data[0]);
-  if (cols.length < 2) return null;
-  const labelKey = cols.find(k => typeof data[0][k] === 'string') ?? cols[0];
-  const valueKey = cols.find(k => typeof data[0][k] === 'number') ?? cols[1];
-  return { chartData: data, xKey: labelKey, yKey: valueKey };
-}
-
-const INITIAL_RECENT: RecentQuery[] = [
-  { q: 'Show all customers', time: '2m ago', tag: '3 rows', tagColor: 'teal' },
-  { q: 'What is the total order amount?', time: '5m ago', tag: 'chart', tagColor: 'blue' },
-  { q: 'Show orders from New York customers', time: '12m ago', tag: '2 rows', tagColor: 'gray' },
-  { q: 'Top customers by total spending', time: '1h ago', tag: 'chart', tagColor: 'violet' },
+const STATS = [
+  { value: 'Llama 3.3', label: '70B model powering SQL generation' },
+  { value: '100%', label: 'read-only — your data is safe' },
+  { value: '<2s', label: 'average query response time' },
+  { value: '∞', label: 'questions you can ask' },
 ];
 
-// ─── Root page ────────────────────────────────────────────────────────────────
-export default function Page() {
-  const { activeView, setActiveView } = useNav();
-
-  // ── Shared query state (survives view switches) ───────────────────────────
-  const [pageState, setPageState] = useState<PageState>('idle');
-  const [result, setResult] = useState<QueryResponse | null>(null);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<ResultTab>('Table');
-  const [recentQueries, setRecentQueries] = useState<RecentQuery[]>(INITIAL_RECENT);
-  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
-  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
-
-  // ── Load history from localStorage ───────────────────────────────────────
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('querionHistory');
-      if (saved) {
-        setHistoryEntries(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.warn("Failed to load history from local storage", e);
-    } finally {
-      setIsHistoryLoaded(true);
-    }
-  }, []);
-
-  // ── Save history to localStorage ───────────────────────────────────────
-  useEffect(() => {
-    if (!isHistoryLoaded) return;
-    try {
-      localStorage.setItem('querionHistory', JSON.stringify(historyEntries));
-    } catch (e) {
-      console.warn("Failed to save history to local storage", e);
-    }
-  }, [historyEntries, isHistoryLoaded]);
-
-  // ── Run query (callable from any view) ───────────────────────────────────
-  const handleQuery = useCallback(async (question: string) => {
-    // Always switch to dashboard to show results
-    setActiveView('dashboard');
-    setPageState('loading');
-    setActiveTab('Table');
-    setResult(null);
-    setErrorMsg('');
-
-    try {
-      const data = await runQuery(question);
-      setResult(data);
-      setPageState('success');
-
-      const tag = data.data.length > 0
-        ? `${data.data.length} row${data.data.length !== 1 ? 's' : ''}`
-        : 'empty';
-
-      // Prepend to sidebar recent list
-      setRecentQueries(prev => [
-        { q: question, time: 'Just now', tag, tagColor: 'teal' },
-        ...prev.slice(0, 3),
-      ]);
-
-      // Prepend to full history
-      setHistoryEntries(prev => [
-        { question, time: 'Just now', rowCount: data.data.length },
-        ...prev,
-      ]);
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Failed to run query');
-      setPageState('error');
-    }
-  }, [setActiveView]);
-
-  // ── Derived chart / column info ───────────────────────────────────────────
-  const chartInfo = result ? deriveChartInfo(result.data, result.chart) : null;
-  const columns = result ? deriveColumns(result.data) : [];
-
-  // ── View router ───────────────────────────────────────────────────────────
-  if (activeView === 'history') {
-    return (
-      <div className="animate-fade-in">
-        <QueryHistory entries={historyEntries} onRerun={handleQuery} />
-      </div>
-    );
-  }
-
-  if (activeView === 'reports') {
-    return (
-      <div className="animate-fade-in">
-        <SavedReports />
-      </div>
-    );
-  }
-
-  if (activeView === 'scheduled') {
-    return (
-      <div className="animate-fade-in">
-        <ScheduledQueries />
-      </div>
-    );
-  }
-
-  // ── Dashboard view ────────────────────────────────────────────────────────
+// ─── Landing Page ─────────────────────────────────────────────────────────────
+export default function LandingPage() {
+  const { isSignedIn } = useAuth();
   return (
-    <div className="flex flex-col gap-5 animate-fade-in">
+    <div className="min-h-screen bg-[#0A0F1C] text-white font-sans overflow-x-hidden">
 
-      {/* Ask Bar */}
-      <AskBar onSubmit={handleQuery} isLoading={pageState === 'loading'} />
-
-      {/* Metrics */}
-      <div className="grid grid-cols-4 gap-3">
-        {METRICS.map((m, i) => <MetricCard key={i} {...m} />)}
-      </div>
-
-      {/* Chart + Recent Queries */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 380px' }}>
-
-        <div className="bg-surface border border-border-subtle rounded-[12px] shadow-[0_1px_3px_rgba(0,0,0,.06)] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-[13px] font-semibold text-text-main">Revenue over time</div>
-              <div className="text-[12px] text-muted mt-0.5">Monthly · Apr 2024 – Mar 2025</div>
+      {/* ── Navbar ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.07] bg-[#0A0F1C]/80 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-[#2563EB] rounded-[8px] flex items-center justify-center shadow-lg shadow-blue-900/40">
+              <svg className="w-4.5 h-4.5" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="5" stroke="#fff" strokeWidth="1.5" />
+                <path d="M5 8h6M8 5v6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-[11px] text-text-3">
-                <span className="w-2.5 h-[3px] bg-teal rounded-full inline-block" />Actual
-              </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-text-3">
-                <span className="w-2.5 h-[3px] bg-violet rounded-full inline-block" />AI Forecast
-              </div>
-            </div>
+            <span className="text-[15px] font-bold text-white tracking-tight">Querion</span>
           </div>
-          <ChartViewer type="area" data={REVENUE_CHART_DATA} xKey="month" yKey="revenue" />
-        </div>
 
-        {/* Recent Queries panel */}
-        <div className="bg-surface border border-border-subtle rounded-[12px] shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden">
-          <div className="p-4 pb-0">
-            <div className="flex items-center justify-between">
-              <div className="text-[13px] font-semibold text-text-main">Recent queries</div>
-              <button
-                onClick={() => setActiveView('history')}
-                className="text-[11px] text-text-3 hover:text-primary bg-transparent border-none cursor-pointer font-medium transition-colors"
-              >
-                View all →
-              </button>
-            </div>
+          {/* Nav links */}
+          <div className="hidden md:flex items-center gap-7 text-[13px] font-medium text-slate-400">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
           </div>
-          <div className="flex border-b border-border-subtle px-4">
-            {['Mine', 'Team', 'Saved'].map((t, i) => (
-              <div key={t} className={`text-[13px] font-medium py-2.5 px-4 border-b-2 -mb-px cursor-pointer transition-colors ${i === 0 ? 'text-primary border-primary' : 'text-text-3 border-transparent hover:text-text-2'}`}>
-                {t}
-              </div>
-            ))}
-          </div>
-          <div className="p-3 flex flex-col gap-1.5">
-            {recentQueries.map((q, i) => (
-              <div
-                key={i}
-                onClick={() => handleQuery(q.q)}
-                className="p-2.5 px-3 border border-border-subtle rounded-[8px] bg-surface cursor-pointer hover:border-primary hover:bg-blue-50/30 transition-all group"
-              >
-                <div className="text-[13px] font-medium text-text-main mb-1 truncate group-hover:text-primary transition-colors">{q.q}</div>
-                <div className="flex items-center gap-2 text-[11px] text-muted">
-                  <span>{q.time}</span>
-                  <span className={`text-[10px] font-medium px-1.5 py-[2px] rounded-[10px] ${TAG_STYLES[q.tagColor]}`}>{q.tag}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* AI Insight */}
-      {pageState === 'success' && result?.explanation ? (
-        <InsightStrip text={result.explanation} />
-      ) : pageState !== 'success' && (
-        <InsightStrip
-          text={
-            <>
-              <strong className="font-semibold not-italic text-primary">Revenue is up 18.2% month-over-month,</strong>{' '}
-              primarily driven by Electronics (+34%) and Home &amp; Garden (+22%). Your top-performing region is South-East.
-              Consider investigating the 2.1% decline in Avg. Order Value —{' '}
-              <strong className="font-semibold not-italic text-primary">bundle offers</strong> may help reverse this trend.
-            </>
-          }
-        />
-      )}
-
-      {/* Results area */}
-      {pageState === 'idle' && <IdleResultCard />}
-      {pageState === 'loading' && <ResultCard state="loading" />}
-      {pageState === 'error' && <ResultCard state="error" errorMessage={errorMsg} />}
-
-      {pageState === 'success' && result && (
-        <div className="flex flex-col gap-4">
-          <SQLBlock sql={result.sql} />
-
-          <ResultCard state="success">
-            <div className="flex items-center justify-between border-b border-border-subtle p-3.5 px-4">
-              <div className="flex">
-                {(['Table', 'Chart', 'Raw JSON'] as ResultTab[]).map(t => (
-                  <button
-                    key={t}
-                    onClick={() => setActiveTab(t)}
-                    className={`text-[13px] font-medium py-2 px-4 border-b-2 -mb-[1px] cursor-pointer transition-colors bg-transparent border-l-0 border-r-0 border-t-0 ${
-                      activeTab === t ? 'text-primary border-primary' : 'text-text-3 border-transparent hover:text-text-2'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] text-muted">{result.data.length} row{result.data.length !== 1 ? 's' : ''}</span>
-                <button
-                  onClick={() => {
-                    const csv = [
-                      columns.map(c => c.label).join(','),
-                      ...result.data.map(row => columns.map(c => row[c.key] ?? '').join(','))
-                    ].join('\n');
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-                    a.download = 'querion_result.csv';
-                    a.click();
-                  }}
-                  className="flex items-center gap-1.5 text-[11px] font-medium text-text-3 hover:text-primary cursor-pointer bg-transparent border-none transition-colors"
+          {/* Auth CTA */}
+          <div className="flex items-center gap-3">
+            {!isSignedIn ? (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="text-[13px] font-medium text-slate-300 hover:text-white transition-colors px-3 py-1.5"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M6 1v7M3 6l3 3 3-3M2 10h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  Sign in
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="text-[13px] font-semibold bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-4 py-2 rounded-[8px] transition-all shadow-lg shadow-blue-900/30 hover:shadow-blue-800/40"
+                >
+                  Get started free
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="text-[13px] font-semibold bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-4 py-2 rounded-[8px] transition-all"
+                >
+                  Go to Dashboard →
+                </Link>
+                <UserButton appearance={{ elements: { avatarBox: 'w-8 h-8' } }} />
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
+          <div className="absolute top-40 left-1/4 w-[400px] h-[300px] bg-indigo-600/8 rounded-full blur-[80px]" />
+          <div className="absolute top-20 right-1/4 w-[350px] h-[250px] bg-violet-600/8 rounded-full blur-[80px]" />
+        </div>
+
+        {/* Grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 text-[12px] font-medium text-blue-400 mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+            Powered by Llama 3.3 70B · Free to get started
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-[52px] md:text-[72px] font-extrabold leading-[1.05] tracking-tight text-white mb-6">
+            Ask your data{' '}
+            <span className="relative">
+              <span className="bg-gradient-to-r from-[#60A5FA] via-[#818CF8] to-[#A78BFA] bg-clip-text text-transparent">
+                anything
+              </span>
+              <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 rounded-full opacity-40" />
+            </span>
+            {' '}in plain English
+          </h1>
+
+          {/* Subheadline */}
+          <p className="text-[18px] md:text-[20px] text-slate-400 max-w-[640px] mx-auto leading-relaxed mb-10">
+            Querion converts natural language to SQL, executes it on your database, and renders{' '}
+            <span className="text-slate-300 font-medium">interactive charts and AI insights</span> — in seconds, no SQL skills required.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            {!isSignedIn ? (
+              <>
+                <Link
+                  href="/sign-up"
+                  className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold px-8 py-3.5 rounded-[10px] text-[15px] transition-all shadow-2xl shadow-blue-900/40 hover:shadow-blue-800/50 hover:-translate-y-0.5"
+                >
+                  Start for free
+                  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Export CSV
-                </button>
-              </div>
-            </div>
+                </Link>
+                <Link
+                  href="/sign-in"
+                  className="inline-flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 text-white font-medium px-8 py-3.5 rounded-[10px] text-[15px] transition-all"
+                >
+                  Sign in to dashboard
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold px-8 py-3.5 rounded-[10px] text-[15px] transition-all shadow-2xl shadow-blue-900/40"
+              >
+                Go to your dashboard
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+            )}
+          </div>
 
-            {activeTab === 'Table' && (
-              result.data.length > 0 ? (
-                <DataTable columns={columns} rows={result.data} totalRows={result.data.length} />
-              ) : (
-                <div className="h-36 flex items-center justify-center text-[13px] text-text-3">
-                  No results found for this query.
+          {/* Mock UI preview card */}
+          <div className="relative max-w-4xl mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-600/20 to-violet-600/10 rounded-2xl blur-3xl scale-105 opacity-50" />
+            <div className="relative bg-[#111827] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl shadow-black/60">
+              {/* Window chrome */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.07] bg-[#0D1524]">
+                <div className="w-3 h-3 rounded-full bg-red-500/70" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                <div className="w-3 h-3 rounded-full bg-green-500/70" />
+                <div className="flex-1 mx-4 bg-white/[0.06] rounded-[6px] h-7 text-[11px] text-slate-500 flex items-center px-3">
+                  app.querion.ai/dashboard
                 </div>
-              )
-            )}
-
-            {activeTab === 'Chart' && (
-              <div className="p-4">
-                {result.data.length === 0 ? (
-                  <div className="h-36 flex items-center justify-center text-[13px] text-text-3">
-                    No data available to visualize.
-                  </div>
-                ) : chartInfo ? (
-                  <ChartViewer type="bar" data={chartInfo.chartData} xKey={chartInfo.xKey} yKey={chartInfo.yKey} title="Query Result Chart" />
-                ) : (
-                  <div className="h-36 flex items-center justify-center text-[13px] text-text-3">
-                    This result can&apos;t be visualized automatically — switch to Table view.
-                  </div>
-                )}
               </div>
-            )}
-
-            {activeTab === 'Raw JSON' && (
-              <pre className="p-4 text-[12px] font-mono text-text-2 bg-app-bg overflow-x-auto rounded-b-[12px] leading-[1.75]">
-                {JSON.stringify(result.data, null, 2)}
-              </pre>
-            )}
-          </ResultCard>
+              {/* Mock dashboard content */}
+              <div className="flex h-[340px]">
+                {/* Sidebar strip */}
+                <div className="w-40 border-r border-white/[0.06] bg-[#0D1524] p-3 flex flex-col gap-1.5">
+                  <div className="h-7 bg-blue-500/20 rounded-[6px] flex items-center gap-2 px-2">
+                    <div className="w-2.5 h-2.5 rounded-sm bg-blue-400/60" />
+                    <div className="h-2 w-16 bg-blue-400/30 rounded" />
+                  </div>
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-7 rounded-[6px] flex items-center gap-2 px-2">
+                      <div className="w-2.5 h-2.5 rounded-sm bg-white/10" />
+                      <div className="h-2 w-12 bg-white/10 rounded" />
+                    </div>
+                  ))}
+                </div>
+                {/* Main area */}
+                <div className="flex-1 p-4 flex flex-col gap-3">
+                  {/* Ask bar */}
+                  <div className="bg-[#1a2744] border border-blue-500/30 rounded-[10px] px-4 py-3 flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-[5px] bg-blue-500/30 flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full border border-blue-400/50" />
+                    </div>
+                    <div className="flex-1 h-2.5 bg-white/5 rounded" />
+                    <div className="w-16 h-6 bg-blue-500/40 rounded-[6px]" />
+                  </div>
+                  {/* Metric cards */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {['$2.4M', '8,341', '$287', '3.2%'].map((v, i) => (
+                      <div key={i} className="bg-[#111827] border border-white/[0.07] rounded-[8px] p-2.5">
+                        <div className="h-1.5 w-10 bg-white/10 rounded mb-1.5" />
+                        <div className="text-[13px] font-bold text-white/80">{v}</div>
+                        <div className="h-1.5 w-8 bg-green-500/30 rounded mt-1" />
+                      </div>
+                    ))}
+                  </div>
+                  {/* Chart area */}
+                  <div className="flex-1 bg-[#111827] border border-white/[0.07] rounded-[8px] p-3 flex items-end gap-1.5 overflow-hidden">
+                    {[40, 55, 47, 62, 75, 70, 85, 80, 90, 95, 100, 110].map((h, i) => (
+                      <div
+                        key={i}
+                        className="flex-1 rounded-t-sm"
+                        style={{
+                          height: `${h * 0.9}%`,
+                          background: `linear-gradient(to top, #2563EB${i % 2 === 0 ? 'ff' : '99'}, #818CF8${i % 2 === 0 ? '40' : '20'})`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
-  );
-}
+      </section>
 
-// ─── Idle result card ─────────────────────────────────────────────────────────
-function IdleResultCard() {
-  return (
-    <div className="bg-surface border border-border-subtle rounded-[12px] shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
-        <div className="flex">
-          {['Table', 'Chart', 'Raw JSON'].map((t, i) => (
-            <div key={t} className={`text-[13px] font-medium py-2 px-4 border-b-2 -mb-[1px] cursor-pointer transition-colors ${i === 0 ? 'text-primary border-primary' : 'text-text-3 border-transparent'}`}>
-              {t}
+      {/* ── Stats Strip ── */}
+      <section className="border-y border-white/[0.06] bg-white/[0.02] py-12 px-6">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {STATS.map((s) => (
+            <div key={s.label} className="text-center">
+              <div className="text-[28px] font-extrabold text-white mb-1">{s.value}</div>
+              <div className="text-[12px] text-slate-500">{s.label}</div>
             </div>
           ))}
         </div>
-        <span className="text-[11px] text-muted italic">Run a query to see results</span>
-      </div>
+      </section>
 
-      <div className="flex flex-col items-center justify-center py-12 px-8 text-center gap-3">
-        <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-[#F0FDF4] border border-blue-100 rounded-[14px] flex items-center justify-center mb-1">
-          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-            <circle cx="13" cy="13" r="9" stroke="#2563EB" strokeWidth="1.6" />
-            <path d="M9 13h8M13 9v8" stroke="#2563EB" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </div>
-        <div className="text-[16px] font-bold text-text-main">Ask your data anything</div>
-        <div className="text-[13px] text-text-3 max-w-[380px] leading-[1.6]">
-          Type a natural language question above and Querion will generate SQL, run it, and show results instantly.
-        </div>
-        <div className="grid grid-cols-3 gap-2.5 w-full max-w-[560px] mt-3">
-          {[
-            { icon: '👥', text: 'Show all customers', sub: 'List from customers table' },
-            { icon: '💰', text: 'Show all orders', sub: 'Browse orders table' },
-            { icon: '📊', text: 'Top customers by spending', sub: 'Aggregate query' },
-          ].map((s) => (
-            <div
-              key={s.text}
-              className="bg-surface border border-border-subtle rounded-[12px] p-3.5 text-left group cursor-pointer hover:border-primary hover:shadow-[0_2px_12px_rgba(37,99,235,.08)] transition-all"
-            >
-              <div className="w-7 h-7 rounded-[7px] bg-blue-50 flex items-center justify-center mb-2 text-base group-hover:bg-blue-100 transition-colors">{s.icon}</div>
-              <div className="text-[12px] font-semibold text-text-main">{s.text}</div>
-              <div className="text-[11px] text-muted mt-0.5">{s.sub}</div>
+      {/* ── Features ── */}
+      <section id="features" className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Section header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-3 py-1 text-[11px] font-semibold text-blue-400 uppercase tracking-[0.08em] mb-4">
+              Features
             </div>
-          ))}
+            <h2 className="text-[38px] md:text-[48px] font-extrabold text-white leading-tight mb-4">
+              Everything you need to{' '}
+              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                query smarter
+              </span>
+            </h2>
+            <p className="text-[16px] text-slate-400 max-w-[520px] mx-auto leading-relaxed">
+              No SQL knowledge required. Querion handles the technical complexity so you can focus on insights.
+            </p>
+          </div>
+
+          {/* Feature grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map((f) => (
+              <div
+                key={f.title}
+                className={`bg-gradient-to-br ${f.color} border rounded-2xl p-6 group hover:scale-[1.02] transition-all duration-200`}
+              >
+                <div className={`w-11 h-11 ${f.iconColor} rounded-[12px] flex items-center justify-center mb-4`}>
+                  {f.icon}
+                </div>
+                <h3 className="text-[15px] font-bold text-white mb-2">{f.title}</h3>
+                <p className="text-[13px] text-slate-400 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section id="how-it-works" className="py-24 px-6 bg-white/[0.02] border-y border-white/[0.06]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 text-[11px] font-semibold text-violet-400 uppercase tracking-[0.08em] mb-4">
+              How it works
+            </div>
+            <h2 className="text-[38px] md:text-[48px] font-extrabold text-white leading-tight">
+              From question to insight{' '}
+              <br />
+              <span className="bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent">
+                in three steps
+              </span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            {/* Connector line */}
+            <div className="hidden md:block absolute top-8 left-[calc(16.66%-16px)] right-[calc(16.66%-16px)] h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+
+            {STEPS.map((step, i) => (
+              <div key={step.num} className="relative text-center px-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-600/20 to-violet-600/10 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-5 relative z-10">
+                  <span className="text-[22px] font-black bg-gradient-to-br from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                    {step.num}
+                  </span>
+                </div>
+                <h3 className="text-[16px] font-bold text-white mb-2">{step.title}</h3>
+                <p className="text-[13px] text-slate-400 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section id="pricing" className="py-28 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-blue-600/10 rounded-full blur-[100px]" />
+        </div>
+        <div className="max-w-2xl mx-auto text-center relative z-10">
+          <div className="w-16 h-16 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-blue-400" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M9 12h6M12 9v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <h2 className="text-[42px] md:text-[52px] font-extrabold text-white leading-tight mb-4">
+            Start querying your data today
+          </h2>
+          <p className="text-[16px] text-slate-400 mb-10 leading-relaxed">
+            Free to get started. No credit card required. Connect your database and run your first query in under 5 minutes.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {!isSignedIn ? (
+              <>
+                <Link
+                  href="/sign-up"
+                  className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold px-8 py-4 rounded-[10px] text-[16px] transition-all shadow-2xl shadow-blue-900/40 hover:-translate-y-0.5"
+                >
+                  Create free account
+                  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+                <Link
+                  href="/sign-in"
+                  className="inline-flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 text-white font-medium px-8 py-4 rounded-[10px] text-[16px] transition-all"
+                >
+                  Sign in
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold px-8 py-4 rounded-[10px] text-[16px] transition-all shadow-2xl shadow-blue-900/40"
+              >
+                Open dashboard →
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-white/[0.06] py-10 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-[#2563EB] rounded-[7px] flex items-center justify-center">
+              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="5" stroke="#fff" strokeWidth="1.5" />
+                <path d="M5 8h6M8 5v6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="text-[14px] font-bold text-white">Querion</span>
+          </div>
+          <p className="text-[12px] text-slate-600">
+            © {new Date().getFullYear()} Querion. Built with Next.js, FastAPI & Groq.
+          </p>
+          <div className="flex items-center gap-5 text-[12px] text-slate-500">
+            <a href="https://github.com/Anubhx/Querion" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
